@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextShield - SMS Spam Detection</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 120px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .spam {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .ham {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .model-info {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TextShield</h1>
+            <p class="subtitle">AI-powered SMS Spam Detection System</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-group">
+                <label for="sms-text">Enter SMS Message:</label>
+                <textarea id="sms-text" placeholder="Paste the SMS message you want to check here..."></textarea>
+            </div>
+
+            <button id="check-btn" class="btn">Check for Spam</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing message...</p>
+            </div>
+
+            <div class="result-container" id="result-container">
+                <p class="result-title" id="result-title"></p>
+                <p id="result-message"></p>
+            </div>
+
+            <div class="model-info">
+                <h3>About the AI Model</h3>
+                <p>This system uses a custom-trained machine learning model to detect spam messages with high accuracy.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>TextShield &copy; 2023 | Protecting you from unwanted messages</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkBtn = document.getElementById('check-btn');
+            const smsText = document.getElementById('sms-text');
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('result-container');
+            const resultTitle = document.getElementById('result-title');
+            const resultMessage = document.getElementById('result-message');
+
+            checkBtn.addEventListener('click', async function() {
+                const message = smsText.value.trim();
+                
+                if (!message) {
+                    alert('Please enter a message to check');
+                    return;
+                }
+
+                // Show loading indicator
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/predict', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ message: message }),
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.text();
+                        throw new Error(error || 'Server error');
+                    }
+                    
+                    const result = await response.json();
+                    displayResult(result);
+                } catch (error) {
+                    console.error('API Error:', error);
+                    resultTitle.textContent = 'Error';
+                    resultMessage.textContent = error.message || 'An error occurred while checking the message. Please try again.';
+                    resultContainer.className = 'result-container';
+                    resultContainer.style.display = 'block';
+                } finally {
+                    loading.style.display = 'none';
+                }
+            });
+
+            function displayResult(result) {
+                if (!result.prediction || !result.confidence) {
+                    throw new Error('Invalid response from server');
+                }
+                
+                resultContainer.className = 'result-container ' + result.prediction;
+                
+                if (result.prediction === 'spam') {
+                    resultTitle.textContent = '⚠️ Spam Detected!';
+                    resultMessage.textContent = `This message is classified as SPAM with ${Math.round(result.confidence * 100)}% confidence.`;
+                } else {
+                    resultTitle.textContent = '✅ Legitimate Message';
+                    resultMessage.textContent = `This message is classified as HAM (not spam) with ${Math.round(result.confidence * 100)}% confidence.`;
+                }
+                
+                resultContainer.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
